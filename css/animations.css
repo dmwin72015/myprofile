@@ -1,0 +1,138 @@
+/**
+ * ==============================================================================
+ * Minecraft Animations & Keyframes
+ * ==============================================================================
+ */
+
+/* 1. 黄色闪烁标语弹跳 (Splash Text Pulsing) */
+.splash-bounce {
+  display: inline-block;
+  animation: mcSplashPulse 1.8s infinite alternate ease-in-out;
+  transform-origin: center center;
+}
+
+@keyframes mcSplashPulse {
+  0% {
+    transform: rotate(-20deg) scale(0.96);
+  }
+  50% {
+    transform: rotate(-20deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(-20deg) scale(0.96);
+  }
+}
+
+/* 2. 角色待机呼吸与微小摆动 (Idle Breathing & Limb Bobbing) */
+.mc-char-body-root {
+  animation: mcCharIdleBob 3.6s infinite ease-in-out;
+}
+
+@keyframes mcCharIdleBob {
+  0% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(0px);
+  }
+  50% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(-4px);
+  }
+  100% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(0px);
+  }
+}
+
+.arm-left {
+  animation: mcArmLeftBob 3.6s infinite ease-in-out;
+}
+
+@keyframes mcArmLeftBob {
+  0% {
+    transform: rotateX(6deg);
+  }
+  50% {
+    transform: rotateX(-8deg);
+  }
+  100% {
+    transform: rotateX(6deg);
+  }
+}
+
+.arm-right {
+  animation: mcArmRightBob 3.6s infinite ease-in-out;
+}
+
+@keyframes mcArmRightBob {
+  0% {
+    transform: rotateX(-6deg);
+  }
+  50% {
+    transform: rotateX(8deg);
+  }
+  100% {
+    transform: rotateX(-6deg);
+  }
+}
+
+/* 3. 点击跳跃与挥剑动作 (Jump & Swing) */
+.action-jump {
+  animation: mcActionJump 0.45s ease-out !important;
+}
+
+@keyframes mcActionJump {
+  0% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(0);
+  }
+  40% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(-28px);
+  }
+  100% {
+    transform: rotateY(-18deg) rotateX(4deg) translateY(0);
+  }
+}
+
+.action-swing {
+  animation: mcActionSwing 0.45s ease-out !important;
+}
+
+@keyframes mcActionSwing {
+  0% {
+    transform: rotateX(0deg);
+  }
+  35% {
+    transform: rotateX(-75deg) rotateY(-20deg);
+  }
+  70% {
+    transform: rotateX(25deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+/* 4. 受伤红心抖动 (Damage Shake) */
+.shake-hurt {
+  animation: mcHurtShake 0.4s ease-in-out;
+}
+
+@keyframes mcHurtShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+/* 5. 经验条光晕微动 */
+@keyframes xpGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
+}
+
+.mc-xp-fill {
+  animation: xpGlow 2.5s infinite ease-in-out;
+}
+
+/* 6. 浮动像素标签微动 */
+@keyframes tagFloat {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}

@@ -1,0 +1,521 @@
+/**
+ * ==============================================================================
+ * Minecraft UI Components & Design System
+ * 像素级复刻原版 GUI、按钮、槽位、浮动提示、羊皮纸与 3D 角色样式
+ * ==============================================================================
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+:root {
+  /* Minecraft 原版调色板 */
+  --mc-gui-bg: #c6c6c6;
+  --mc-gui-dark: #373737;
+  --mc-gui-light: #ffffff;
+  --mc-gui-gray: #8b8b8b;
+  --mc-slot-bg: #8b8b8b;
+  --mc-slot-dark: #373737;
+  
+  --mc-text-black: #1e1e1e;
+  --mc-text-white: #ffffff;
+  --mc-text-shadow: #3f3f3f;
+  --mc-xp-green: #80ff20;
+  
+  /* 稀有度与附魔颜色代码 */
+  --mc-color-aqua: #55ffff;
+  --mc-color-purple: #ff55ff;
+  --mc-color-yellow: #ffff55;
+  --mc-color-green: #55ff55;
+  --mc-color-gold: #ffaa00;
+  --mc-color-gray: #aaaaaa;
+  --mc-color-dark-gray: #555555;
+  
+  /* 字体族 */
+  --font-pixel: 'Silkscreen', 'Press Start 2P', monospace;
+  --font-pixel-cn: 'Silkscreen', 'VT323', 'Noto Sans SC', sans-serif;
+  --font-body: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ==============================================================================
+ * 1. 经典 Minecraft 按钮 (Minecraft Classic 3D Bevel Button)
+ * ============================================================================== */
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #8b8b8b;
+  color: #ffffff;
+  font-family: var(--font-pixel-cn);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 0;
+  
+  /* 经典凸起 3D 边框 */
+  border-top: 3px solid #ffffff;
+  border-left: 3px solid #ffffff;
+  border-right: 3px solid #373737;
+  border-bottom: 3px solid #373737;
+  box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #000000, 0 0 0 2px #000000;
+  text-shadow: 2px 2px 0px #222222;
+  transition: filter 0.05s ease;
+  position: relative;
+}
+
+.mc-btn:hover {
+  background-color: #9c9c9c;
+  color: #ffffa0;
+  box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #000000, 0 0 0 2px #ffffff;
+}
+
+.mc-btn:active, .mc-btn.active {
+  background-color: #707070;
+  border-top: 3px solid #373737;
+  border-left: 3px solid #373737;
+  border-right: 3px solid #ffffff;
+  border-bottom: 3px solid #ffffff;
+  box-shadow: inset 1px 1px 0px #000000, inset -1px -1px 0px #ffffff, 0 0 0 2px #000000;
+  transform: translateY(1px);
+}
+
+.mc-btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* 绿色强化按钮 (原版确定/合成按键) */
+.mc-btn.btn-green {
+  background-color: #4a8024;
+  border-top-color: #79c53e;
+  border-left-color: #79c53e;
+  border-right-color: #24440f;
+  border-bottom-color: #24440f;
+}
+.mc-btn.btn-green:hover {
+  background-color: #5ba32d;
+}
+
+/* ==============================================================================
+ * 2. 经典 Minecraft 物品槽位 (Inventory & Hotbar Slots)
+ * ============================================================================== */
+.mc-inv-slot {
+  width: 52px;
+  height: 52px;
+  background-color: #8b8b8b;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  
+  /* 经典内凹凹槽阴影 */
+  border-top: 3px solid #373737;
+  border-left: 3px solid #373737;
+  border-right: 3px solid #ffffff;
+  border-bottom: 3px solid #ffffff;
+  box-shadow: inset 2px 2px 0px #000000, 0 0 0 2px #000000;
+  transition: transform 0.1s ease, border-color 0.1s;
+}
+
+.mc-inv-slot:hover {
+  background-color: #a0a0a0;
+  box-shadow: inset 2px 2px 0px #000000, 0 0 0 2px #ffffff;
+}
+
+.mc-inv-slot.active-slot {
+  box-shadow: inset 2px 2px 0px #000000, 0 0 0 3px #55ffff;
+  background-color: #a8a8a8;
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.mc-inv-slot .slot-item-icon {
+  width: 34px;
+  height: 34px;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.4));
+  pointer-events: none;
+}
+
+.mc-inv-slot .slot-num {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #dddddd;
+  text-shadow: 1px 1px 0px #000000;
+  pointer-events: none;
+}
+
+/* ==============================================================================
+ * 3. 经典原版 RPG 浮动提示框 (Authentic Minecraft Tooltip)
+ * ============================================================================== */
+.mc-item-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  min-width: 200px;
+  max-width: 280px;
+  padding: 8px 12px;
+  background: #100010;
+  background: linear-gradient(180deg, #100010 0%, #17001b 100%);
+  border: 2px solid #280070;
+  box-shadow: 0 0 0 2px #5000ff, 0 8px 16px rgba(0,0,0,0.8);
+  font-family: var(--font-pixel-cn);
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: normal;
+}
+
+.mc-inv-slot:hover .mc-item-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.mc-item-tooltip .tt-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  text-shadow: 1px 1px 0px #220022;
+}
+
+.mc-item-tooltip .tt-sub {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.mc-item-tooltip .tt-lore {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* 颜色工具类 */
+.text-aqua { color: var(--mc-color-aqua); text-shadow: 1px 1px 0px #004444; }
+.text-purple { color: var(--mc-color-purple); text-shadow: 1px 1px 0px #440044; }
+.text-yellow { color: var(--mc-color-yellow); text-shadow: 1px 1px 0px #444400; }
+.text-green { color: var(--mc-color-green); text-shadow: 1px 1px 0px #004400; }
+.text-gold { color: var(--mc-color-gold); text-shadow: 1px 1px 0px #442800; }
+.text-gray { color: var(--mc-color-gray); text-shadow: 1px 1px 0px #222222; }
+.text-dark-gray { color: var(--mc-color-dark-gray); text-shadow: 1px 1px 0px #111111; }
+.text-white { color: var(--mc-color-white); text-shadow: 1px 1px 0px #222222; }
+
+/* ==============================================================================
+ * 4. 经验条与 HUD (Health, Hunger, XP Bar)
+ * ============================================================================== */
+.mc-hud-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.mc-hud-icon:hover {
+  transform: scale(1.2);
+}
+.mc-hud-icon img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.mc-xp-bar-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  cursor: pointer;
+}
+
+.mc-xp-level-badge {
+  text-align: center;
+  font-family: var(--font-pixel);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--mc-xp-green);
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000;
+  margin-bottom: 2px;
+}
+
+.mc-xp-track {
+  height: 10px;
+  background-color: #3b3b3b;
+  border: 2px solid #000000;
+  border-top-color: #1a1a1a;
+  border-left-color: #1a1a1a;
+  box-shadow: inset 0 0 0 1px #555555;
+  position: relative;
+  overflow: hidden;
+}
+
+.mc-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7cdb04 0%, #a2ff18 100%);
+  box-shadow: 0 0 6px rgba(124, 219, 4, 0.8);
+  transition: width 0.4s ease;
+}
+
+/* ==============================================================================
+ * 5. 3D CSS 原生方块角色 (Steve / Alex / Cyber 3D Cubes)
+ * ============================================================================== */
+.mc-char-viewport {
+  width: 220px;
+  height: 320px;
+  perspective: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+}
+
+.mc-char-stage {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 浮动名签 */
+.mc-nametag {
+  position: absolute;
+  top: 10px;
+  background-color: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: var(--font-pixel-cn);
+  font-size: 13px;
+  color: #ffffff;
+  text-shadow: 1px 1px 0px #000000;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+}
+.mc-nametag .mc-nametag-lvl {
+  color: var(--mc-xp-green);
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.mc-char-body-root {
+  width: 64px;
+  height: 192px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(-18deg) rotateX(4deg);
+  cursor: pointer;
+  transition: transform 0.15s ease-out;
+}
+
+/* 通用 3D Cube 面定义 */
+.mc-cube {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.mc-cube .face {
+  position: absolute;
+  image-rendering: pixelated;
+  backface-visibility: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* 1. 头部 64px x 64px x 64px (按比例) */
+.mc-char-head {
+  width: 56px;
+  height: 56px;
+  top: 0;
+  left: 4px;
+  transform-origin: 50% 100% -28px;
+  transition: transform 0.08s ease-out;
+}
+.mc-char-head .face { width: 56px; height: 56px; }
+.mc-char-head .front  { transform: translateZ(28px); background-color: #c68a5c; }
+.mc-char-head .back   { transform: rotateY(180deg) translateZ(28px); background-color: #4a3321; }
+.mc-char-head .left   { transform: rotateY(-90deg) translateZ(28px); background-color: #a4683f; }
+.mc-char-head .right  { transform: rotateY(90deg) translateZ(28px); background-color: #a4683f; }
+.mc-char-head .top    { transform: rotateX(90deg) translateZ(28px); background-color: #4a3321; }
+.mc-char-head .bottom { transform: rotateX(-90deg) translateZ(28px); background-color: #c68a5c; }
+
+/* 头部正面像素五官 (Steve 默认五官) */
+.face-head-front {
+  background-image: url('../assets/steve_avatar.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+/* 2. 躯干 56px x 84px x 28px */
+.mc-char-torso {
+  width: 56px;
+  height: 84px;
+  top: 56px;
+  left: 4px;
+  transform-origin: 50% 50% -14px;
+}
+.mc-char-torso .face.front  { width: 56px; height: 84px; transform: translateZ(14px); background-color: #00aaaa; }
+.mc-char-torso .face.back   { width: 56px; height: 84px; transform: rotateY(180deg) translateZ(14px); background-color: #008888; }
+.mc-char-torso .face.left   { width: 28px; height: 84px; transform: rotateY(-90deg) translateZ(14px); background-color: #007777; left: 14px; }
+.mc-char-torso .face.right  { width: 28px; height: 84px; transform: rotateY(90deg) translateZ(42px); background-color: #007777; left: 14px; }
+.mc-char-torso .face.top    { width: 56px; height: 28px; transform: rotateX(90deg) translateZ(14px); background-color: #00aaaa; }
+.mc-char-torso .face.bottom { width: 56px; height: 28px; transform: rotateX(-90deg) translateZ(70px); background-color: #006666; }
+
+/* 3. 手臂 24px x 84px x 24px */
+.mc-char-arm {
+  width: 24px;
+  height: 84px;
+  top: 56px;
+  transform-origin: 50% 10px -12px;
+}
+.mc-char-arm.arm-right {
+  left: -20px;
+}
+.mc-char-arm.arm-left {
+  right: -20px;
+}
+.mc-char-arm .face.front  { width: 24px; height: 84px; transform: translateZ(12px); background: linear-gradient(#00aaaa 25%, #c68a5c 25%); }
+.mc-char-arm .face.back   { width: 24px; height: 84px; transform: rotateY(180deg) translateZ(12px); background: linear-gradient(#008888 25%, #a4683f 25%); }
+.mc-char-arm .face.left   { width: 24px; height: 84px; transform: rotateY(-90deg) translateZ(12px); background: linear-gradient(#007777 25%, #a4683f 25%); }
+.mc-char-arm .face.right  { width: 24px; height: 84px; transform: rotateY(90deg) translateZ(12px); background: linear-gradient(#007777 25%, #a4683f 25%); }
+.mc-char-arm .face.top    { width: 24px; height: 24px; transform: rotateX(90deg) translateZ(12px); background-color: #00aaaa; }
+.mc-char-arm .face.bottom { width: 24px; height: 24px; transform: rotateX(-90deg) translateZ(72px); background-color: #c68a5c; }
+
+/* 手持武器插槽 */
+.mc-held-item {
+  position: absolute;
+  bottom: -10px;
+  left: -15px;
+  width: 48px;
+  height: 48px;
+  transform: translateZ(24px) rotateX(-20deg) rotateZ(-30deg);
+  pointer-events: none;
+}
+.mc-held-item img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.6));
+}
+
+/* 4. 双腿 26px x 84px x 26px */
+.mc-char-leg {
+  width: 26px;
+  height: 84px;
+  top: 140px;
+  transform-origin: 50% 0 -13px;
+}
+.mc-char-leg.leg-right { left: 5px; }
+.mc-char-leg.leg-left  { left: 33px; }
+.mc-char-leg .face.front  { width: 26px; height: 84px; transform: translateZ(13px); background: linear-gradient(#2d288a 75%, #444444 75%); }
+.mc-char-leg .face.back   { width: 26px; height: 84px; transform: rotateY(180deg) translateZ(13px); background: linear-gradient(#221e6a 75%, #333333 75%); }
+.mc-char-leg .face.left   { width: 26px; height: 84px; transform: rotateY(-90deg) translateZ(13px); background: linear-gradient(#1c1955 75%, #2a2a2a 75%); }
+.mc-char-leg .face.right  { width: 26px; height: 84px; transform: rotateY(90deg) translateZ(13px); background: linear-gradient(#1c1955 75%, #2a2a2a 75%); }
+.mc-char-leg .face.top    { width: 26px; height: 26px; transform: rotateX(90deg) translateZ(13px); background-color: #2d288a; }
+.mc-char-leg .face.bottom { width: 26px; height: 26px; transform: rotateX(-90deg) translateZ(71px); background-color: #222222; }
+
+/* 底部脚下阴影 */
+.mc-char-shadow {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  width: 90px;
+  height: 40px;
+  transform: translateX(-50%) rotateX(90deg);
+  background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 皮肤变体 - Alex 皮肤 */
+.skin-alex .face-head-front {
+  background-image: url('../assets/alex_avatar.svg');
+}
+.skin-alex .mc-char-torso .face { background-color: #5c753b !important; }
+.skin-alex .mc-char-leg .face   { background: linear-gradient(#56422b 75%, #302619 75%) !important; }
+
+/* 皮肤变体 - Cyber 赛博黑客皮肤 */
+.skin-cyber .face-head-front {
+  background-image: url('../assets/cyber_avatar.svg');
+}
+.skin-cyber .mc-char-torso .face { background-color: #1a1d24 !important; border-color: #00ffcc !important; }
+.skin-cyber .mc-char-arm .face   { background: linear-gradient(#1a1d24 30%, #00ffcc 30%) !important; }
+.skin-cyber .mc-char-leg .face   { background: linear-gradient(#0e1014 75%, #00ffcc 75%) !important; }
+
+/* ==============================================================================
+ * 6. 原版成就弹窗 Toast (Advancement Toast)
+ * ============================================================================== */
+.mc-advancement-toast {
+  position: fixed;
+  top: 24px;
+  right: -380px;
+  width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: #212121;
+  background-image: radial-gradient(circle at 50% 50%, #2f2f2f 0%, #171717 100%);
+  border: 3px solid #ffffff;
+  border-right-color: #555555;
+  border-bottom-color: #555555;
+  box-shadow: 0 0 0 2px #000000, 0 10px 30px rgba(0,0,0,0.8);
+  font-family: var(--font-pixel-cn);
+  z-index: 9999;
+  transition: right 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.mc-advancement-toast.toast-active {
+  right: 24px;
+}
+
+.mc-advancement-toast .toast-icon {
+  width: 44px;
+  height: 44px;
+  background-color: #3f3f3f;
+  border: 2px solid #ffffff;
+  box-shadow: inset 1px 1px 0 #000, 0 0 0 1px #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mc-advancement-toast .toast-icon img {
+  width: 30px;
+  height: 30px;
+  image-rendering: pixelated;
+}
+
+.mc-advancement-toast .toast-kicker {
+  font-size: 11px;
+  color: var(--mc-color-yellow);
+  text-shadow: 1px 1px 0px #3f3f00;
+  margin-bottom: 2px;
+}
+.mc-advancement-toast .toast-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 1px 1px 0px #000000;
+  margin-bottom: 2px;
+}
+.mc-advancement-toast .toast-desc {
+  font-size: 11px;
+  color: #aaaaaa;
+  line-height: 1.3;
+}

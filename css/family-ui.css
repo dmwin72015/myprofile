@@ -1,0 +1,135 @@
+/**
+ * ==============================================================================
+ * family-ui.css - Family Member Switcher Dock & Cards Styling
+ * ==============================================================================
+ */
+
+#familyDock {
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 200;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(4px);
+  border: 2px solid #555555;
+  box-shadow: 0 0 0 2px #000000, 0 8px 20px rgba(0,0,0,0.6);
+  padding: 8px 10px;
+}
+
+.family-dock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffff55;
+  text-shadow: 1px 1px 0 #000000;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.family-dock-hint {
+  font-size: 10px;
+  color: #aaaaaa;
+  font-weight: normal;
+}
+
+.family-dock-members {
+  display: flex;
+  gap: 8px;
+}
+
+.family-member-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #4a4a4a;
+  border: 2px solid #888888;
+  border-right-color: #222222;
+  border-bottom-color: #222222;
+  box-shadow: 0 0 0 1px #000000;
+  cursor: url('../assets/crosshair.svg') 7 7, pointer;
+  position: relative;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+}
+
+.family-member-card:hover {
+  background: #5c5c5c;
+  transform: translateY(-2px);
+}
+
+.family-member-card.active {
+  background: #2e5b1e;
+  border-color: #7cdb04;
+  box-shadow: 0 0 0 2px #7cdb04, 0 4px 10px rgba(124, 219, 4, 0.4);
+}
+
+.member-avatar-box {
+  width: 32px;
+  height: 32px;
+  background: #111111;
+  border: 1px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.member-avatar-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.member-info-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+}
+
+.member-role {
+  font-size: 10px;
+  color: #ffda79;
+}
+
+.family-member-card .active-badge {
+  display: none;
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  background: #7cdb04;
+  color: #000000;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.family-member-card.active .active-badge {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #familyDock {
+    top: 60px;
+    left: 8px;
+    right: 8px;
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>四口之家的方块小屋 · Minecraft Family Cottage</title>
+  <link rel="icon" type="image/svg+xml" href="assets/grass_block.svg" />
+
+  <!-- 样式表引入 -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/family-ui.css" />
+
+  <!-- 本地 Three.js 模块映射 (100% 离线独立可用) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./lib/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./lib/OrbitControls.js",
+      "three/addons/utils/BufferGeometryUtils.js": "./lib/BufferGeometryUtils.js",
+      "OrbitControls": "./lib/OrbitControls.js",
+      "BufferGeometryUtils": "./lib/BufferGeometryUtils.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- 3D Three.js 三维场景容器 -->
+  <div id="canvas3d"></div>
+
+  <!-- 睡眠渐变黑屏过渡与醒来提示 -->
+  <div id="fade"><div id="fadeTxt">Zzz...</div></div>
+
+  <!-- 1. 开场加载界面 (带经典泥土背景与黄色闪烁标语) -->
+  <div id="loading">
+    <div id="logo">
+      <div class="cn">四口之家的方块小屋</div>
+      <h1>CRAFTER FAMILY · BLOCK COTTAGE</h1>
+      <div id="splash">充满爱与欢笑的四口之家！</div>
+    </div>
+    <div id="loadbar"><i></i></div>
+    <div id="loadtxt">正在生成三维方块世界…</div>
+    <button id="enter" class="btn big" style="display:none;">▶ 进入世界</button>
+  </div>
+
+  <!-- 2. 家庭成员切换 Dock (左上方) -->
+  <div id="familyDock"></div>
+
+  <!-- 3. 游戏 HUD 状态与控制界面 -->
+  <div id="hud">
+    <!-- 顶部右侧功能按钮栏 -->
+    <div id="topbtns">
+      <button id="bChat" title="聊天 / 命令 (T 键)">💬</button>
+      <button id="bPets" title="萌宠互动与召唤 (P 键)">🐾</button>
+      <button id="bBike" title="单车骑行 / 停靠 (B 键)">🚲</button>
+      <button id="bAch" title="冒险进度">🏆</button>
+      <button id="bDay" title="切换昼夜环境">🌙</button>
+      <button id="bRoof" title="显示/隐藏屋顶 (R 键)">🏠</button>
+      <button id="bSound" title="声音开关">🔊</button>
+      <button id="bEditor" title="家庭成员换装与资料编辑 (随时替换头像与简介)">⚙️</button>
+      <button id="bHelp" title="漫游指南 (H 键)">❓</button>
+    </div>
+
+    <!-- 区域进场大字横幅 -->
+    <div id="title">
+      <div class="t"></div>
+      <div class="s"></div>
+    </div>
+
+    <!-- 成就浮动横幅 -->
+    <div id="toasts"></div>
+
+    <!-- 终端聊天历史记录 -->
+    <div id="chat"></div>
+
+    <!-- 命令行输入栏 -->
+    <div id="chatInput">
+      <input id="chatBox" placeholder="说点什么，或输入 /help 查看命令" maxlength="80" autocomplete="off" />
+    </div>
+
+    <!-- 底部状态与 9 格热键栏 -->
+    <div id="bottom">
+      <div id="stats">
+        <div id="hearts"></div>
+        <div id="coffeeMugs"></div>
+      </div>
+      <div id="xp" title="附魔经验 (点击升级)">
+        <div id="xpfill"></div>
+        <span id="xplv">99</span>
+      </div>
+      <div id="hotbar"></div>
+    </div>
+  </div>
+
+  <!-- 4. 鼠标悬停 3D 方块提示 -->
+  <div id="tooltip"></div>
+
+  <!-- 5. 走近物品实时交互条 (按 E 或点击) -->
+  <div id="interactPrompt">
+    <span class="prompt-key">E</span>
+    <span class="prompt-label" id="promptLabel">点击或按 E 互动</span>
+  </div>
+
+  <!-- 6. 原版模态弹窗系统 -->
+  <div id="panelOverlay">
+    <div id="panel"></div>
+  </div>
+
+  <!-- 基础全局音频与主入口模块 -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
