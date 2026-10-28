@@ -14,6 +14,12 @@
 import * as THREE from 'three';
 import { bus } from '../core/EventBus.js';
 
+// ==========================================
+// 单车骑乘对齐参考高度 (世界坐标)
+// ==========================================
+const GROUND_Y = 0.5;                              // 地表方块顶面高度
+const SADDLE_WORLD_TOP = GROUND_Y + 0.84 + 0.04;   // 车座顶面 (座垫 y=0.84 + 半高 0.04)
+
 export class BicycleModel {
   constructor(scene) {
     this.scene = scene;
@@ -204,10 +210,17 @@ export class BicycleModel {
   park(x, z, rotY = 0) {
     this.isRidden = false;
     this.rider = null;
-    this.group.position.set(x, 0, z);
+    this.group.position.set(x, 0.5, z); // 停放在地面表层 (y=0.5)，轮胎贴合草皮/路面
     this.group.rotation.set(0, rotY, -0.09); // 停靠时稍微倾斜靠在脚撑上
     if (this.kickstand) this.kickstand.rotation.z = 0.55;
     this.updateInteractableText();
+  }
+
+  // 骑手骨盆中心抬升到车座顶面的目标高度 (世界坐标)
+  riderSeatY(character) {
+    const s = character.scale || 1.0;
+    // 骨盆接触面位于角色局部 0.60·scale，受 group 缩放后再乘 scale → 世界偏移 0.60·scale²
+    return SADDLE_WORLD_TOP - 0.60 * s * s;
   }
 
   // 骑上单车 (Mount)
@@ -216,6 +229,9 @@ export class BicycleModel {
     this.rider = character;
     this.group.rotation.set(0, character.group.rotation.y, 0); // 立正车身
     if (this.kickstand) this.kickstand.rotation.z = 0.0; // 收起脚撑
+
+    // 抬升骑手臀部，使其稳稳坐上车座
+    character.group.position.y = this.riderSeatY(character);
 
     if (window.MCAudio && window.MCAudio.playBikeBell) {
       window.MCAudio.playBikeBell();
@@ -246,6 +262,7 @@ export class BicycleModel {
     const sideZ = Math.sin(rotY + Math.PI / 2) * 0.55;
     rider.group.position.x += sideX;
     rider.group.position.z += sideZ;
+    rider.group.position.y = GROUND_Y; // 下车后恢复站地高度
     rider.isRidingBike = false;
 
     // 单车平稳停放在角色脚边并展开脚撑
@@ -282,8 +299,14 @@ export class BicycleModel {
   // 每一帧同步驱动车身位移、轮胎转动与曲柄踩踏
   update(delta, activeChar, isWalking, moveDist) {
     if (this.isRidden && this.rider) {
-      // 1. 同步贴合角色当前位置与朝向
-      this.group.position.copy(this.rider.group.position);
+      // 1. 单车始终贴合地面，仅同步角色水平位置 (避免随抬升的骑手一起浮空)
+      this.group.position.set(
+        this.rider.group.position.x,
+        GROUND_Y,
+        this.rider.group.position.z
+      );
+      // 持续抬升骑手，使其臀部贴合车座顶面
+      this.rider.group.position.y = this.riderSeatY(this.rider);
       this.group.rotation.y = this.rider.group.rotation.y;
 
       // 转弯时自然微倾斜车身
