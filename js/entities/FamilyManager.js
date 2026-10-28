@@ -47,6 +47,12 @@ export class FamilyManager {
     this.moveSpeed = 6.4; // 移动速度 (方块/秒)
     this.bellCooldown = 0;
 
+    // 🖱️ 鼠标点击移动目标点
+    this.moveTarget = null;
+    this.stuckTimer = 0;
+    this._targetLastX = 0;
+    this._targetLastZ = 0;
+
     // 🚲 高精度 Minecraft 风格运动单车
     this.bicycle = new BicycleModel(this.scene);
 
@@ -65,6 +71,7 @@ export class FamilyManager {
       if (this.bicycle && this.bicycle.isRidden) {
         this.dismountBicycle();
       }
+      this.clearMoveTarget();
       this.activeId = member.id;
       const targetChar = this.characters.get(member.id);
       if (targetChar) {
@@ -76,6 +83,7 @@ export class FamilyManager {
       if (this.bicycle && this.bicycle.isRidden) {
         this.dismountBicycle();
       }
+      this.clearMoveTarget();
       const active = this.getActiveCharacter();
       if (active) {
         active.startDive();
@@ -145,6 +153,23 @@ export class FamilyManager {
     }
   }
 
+  // 设置鼠标点击移动的目标点 (世界坐标 XZ 平面)
+  setMoveTarget(point) {
+    if (!point) return;
+    this.moveTarget = new THREE.Vector3(point.x, 0.5, point.z);
+    this.stuckTimer = 0;
+    const active = this.getActiveCharacter();
+    if (active) {
+      this._targetLastX = active.group.position.x;
+      this._targetLastZ = active.group.position.z;
+    }
+  }
+
+  clearMoveTarget() {
+    this.moveTarget = null;
+    this.stuckTimer = 0;
+  }
+
   getInteractables() {
     const list = [];
     this.characters.forEach((char) => {
@@ -201,6 +226,17 @@ export class FamilyManager {
     const pos = active.group.position;
     const inPool = (pos.x >= 10 && pos.x <= 20 && pos.z >= 4 && pos.z <= 14);
 
+    // 🖱️ 点击移动卡住检测：被墙体阻挡超过 0.5 秒自动取消目标
+    if (this.moveTarget) {
+      const travel = Math.hypot(pos.x - this._targetLastX, pos.z - this._targetLastZ);
+      this._targetLastX = pos.x;
+      this._targetLastZ = pos.z;
+      this.stuckTimer = travel < 0.005 ? this.stuckTimer + delta : 0;
+      if (this.stuckTimer > 0.5) {
+        this.clearMoveTarget();
+      }
+    }
+
     if (inPool && active.isRidingBike) {
       this.dismountBicycle();
       bus.emit('toast:show', {
@@ -245,7 +281,12 @@ export class FamilyManager {
     if (keys['KeyA'] || keys['ArrowLeft']) inputRight -= 1;
     if (keys['KeyD'] || keys['ArrowRight']) inputRight += 1;
 
+    let moveDir = null;
+
     if (inputForward !== 0 || inputRight !== 0) {
+      // 键盘操作优先：立即取消鼠标点击的移动目标
+      this.clearMoveTarget();
+
       // 1. 获取相机在水平 XZ 平面上的前向朝向 (忽略俯仰角)
       const forward = new THREE.Vector3();
       if (camera) {
@@ -261,11 +302,23 @@ export class FamilyManager {
       right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
       // 3. 将输入合成为相对相机的移动方向向量
-      const moveDir = new THREE.Vector3();
+      moveDir = new THREE.Vector3();
       moveDir.addScaledVector(forward, inputForward);
       moveDir.addScaledVector(right, inputRight);
       moveDir.normalize();
+    } else if (this.moveTarget) {
+      // 🖱️ 鼠标点击移动：直线走向目标点
+      const dx = this.moveTarget.x - pos.x;
+      const dz = this.moveTarget.z - pos.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist < 0.35) {
+        this.clearMoveTarget(); // 已到达目标点
+      } else {
+        moveDir = new THREE.Vector3(dx / dist, 0, dz / dist);
+      }
+    }
 
+    if (moveDir) {
       const speed = active.inWater ? this.moveSpeed * 0.72 : this.moveSpeed;
       const dist = speed * delta;
       const dx = moveDir.x * dist;

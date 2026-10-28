@@ -29,6 +29,8 @@ export class WorldScene {
     this.roofOpacity = 1.0;
     this.wasInside = false;
     this.currentNearbyTarget = null;
+    this.moveMarker = null;
+    this.moveMarkerT = 0;
 
     this.init();
   }
@@ -58,8 +60,9 @@ export class WorldScene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
+    // Neutral 色调映射：中间调不压暗，明亮通透不发闷 (ACES 会整体压灰压暗)
+    this.renderer.toneMapping = THREE.NeutralToneMapping;
+    this.renderer.toneMappingExposure = 1.12;
     this.container.appendChild(this.renderer.domElement);
 
     // 增大缩放范围，支持更开阔的全景远眺 (min: 3.5, max: 75.0)
@@ -80,23 +83,23 @@ export class WorldScene {
 
   setupScene() {
     this.scene = new THREE.Scene();
-    // 纯正清爽的天蓝与开阔地平线雾气 (#8fc9ff, 110 到 340，大幅拉远雾气边缘，远眺不泛白)
-    this.daySky = new THREE.Color('#8fc9ff');
+    // 明亮清爽的天蓝与开阔地平线雾气 (#a9dcff, 110 到 340，大幅拉远雾气边缘，远眺不泛白)
+    this.daySky = new THREE.Color('#a9dcff');
     this.nightSky = new THREE.Color('#0a0d1a');
     this.scene.background = this.daySky.clone();
 
-    this.dayFog = new THREE.Fog('#8fc9ff', 110, 340);
+    this.dayFog = new THREE.Fog('#a9dcff', 110, 340);
     this.nightFog = new THREE.Fog('#0a0d1a', 70, 220);
     this.scene.fog = this.dayFog;
   }
 
   setupLights() {
     // 1. 半球环境光：天空明蓝 + 鲜亮草绿反光，大幅提升树木和阴影处的鲜艳度
-    this.hemiLight = new THREE.HemisphereLight('#d0e8ff', '#5f9933', 0.75);
+    this.hemiLight = new THREE.HemisphereLight('#dbeeff', '#6fae3f', 0.85);
     this.scene.add(this.hemiLight);
 
     // 2. 温暖明媚的阳光：保证像素方块与草坪质感立体生动
-    this.sunLight = new THREE.DirectionalLight('#fffdf5', 1.45);
+    this.sunLight = new THREE.DirectionalLight('#fffdf5', 1.5);
     this.sunLight.position.set(24, 46, 20);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
@@ -127,8 +130,8 @@ export class WorldScene {
       const targetSky = isNight ? this.nightSky : this.daySky;
       this.scene.background = targetSky;
       this.scene.fog = isNight ? this.nightFog : this.dayFog;
-      this.sunLight.intensity = isNight ? 0.15 : 1.35;
-      this.hemiLight.intensity = isNight ? 0.2 : 0.65;
+      this.sunLight.intensity = isNight ? 0.15 : 1.5;
+      this.hemiLight.intensity = isNight ? 0.2 : 0.85;
       this.indoorLight.intensity = isNight ? 2.5 : 1.4;
       this.patioLight.intensity = isNight ? 2.3 : 1.3;
     });
@@ -198,22 +201,49 @@ export class WorldScene {
       }
     });
 
+    // 区分「点击」与「拖拽旋转视角」，并定义地面拾取平面 (y = 0.5 与草地顶面平齐)
+    let pointerDownX = 0;
+    let pointerDownY = 0;
+    let pointerDownAt = 0;
+    window.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      pointerDownX = e.clientX;
+      pointerDownY = e.clientY;
+      pointerDownAt = performance.now();
+    });
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.5);
+
     window.addEventListener('click', (e) => {
       if (e.target.closest('#hud') || e.target.closest('#panelOverlay') || e.target.closest('#loading') || e.target.closest('#familyDock')) return;
+
+      // 拖拽旋转视角时不触发点击交互/移动
+      if (Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY) > 6) return;
+      if (performance.now() - pointerDownAt > 700) return;
 
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, this.camera);
-      const intersects = raycaster.intersectObjects(this.builderData.interactables, true);
 
+      // 1. 优先响应可交互物体的点击
+      const intersects = raycaster.intersectObjects(this.builderData.interactables, true);
       if (intersects.length > 0) {
         const hit = intersects[0].object;
         const rootData = hit.userData.targetKey ? hit.userData : (hit.parent && hit.parent.userData);
         if (rootData && rootData.targetKey) {
           if (window.MCAudio) window.MCAudio.playClick();
           bus.emit('interact:trigger', rootData.targetKey);
+          return;
         }
       }
+
+      // 2. 点击空地：角色自动走向该位置
+      const point = new THREE.Vector3();
+      if (!raycaster.ray.intersectPlane(groundPlane, point)) return;
+      point.x = THREE.MathUtils.clamp(point.x, -75, 75);
+      point.z = THREE.MathUtils.clamp(point.z, -75, 75);
+      point.y = 0.5;
+      this.familyManager.setMoveTarget(point);
+      this.showMoveMarker(point);
     });
 
     // 经典 Minecraft 按 E 键快速触发当前靠近物体的交互
@@ -364,6 +394,27 @@ export class WorldScene {
     }
   }
 
+  // 鼠标点击移动的目的地光圈标记
+  showMoveMarker(pos3d) {
+    if (!this.moveMarker) {
+      const geo = new THREE.RingGeometry(0.36, 0.5, 32);
+      geo.rotateX(-Math.PI / 2);
+      const mat = new THREE.MeshBasicMaterial({
+        color: '#7fe9ff',
+        transparent: true,
+        opacity: 0.9,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      this.moveMarker = new THREE.Mesh(geo, mat);
+      this.moveMarker.renderOrder = 2;
+      this.scene.add(this.moveMarker);
+    }
+    this.moveMarker.position.set(pos3d.x, 0.56, pos3d.z);
+    this.moveMarker.visible = true;
+    this.moveMarkerT = 0;
+  }
+
   animate() {
     requestAnimationFrame(() => this.animate());
     const delta = Math.min(this.clock.getDelta(), 0.1);
@@ -423,6 +474,19 @@ export class WorldScene {
     // 5. 驱动小狗小猫全自主行走、巡视、玩耍与跟随系统
     if (this.petManager) {
       this.petManager.update(delta, time, activeChar);
+    }
+
+    // 6. 点击移动目的地光圈：脉动呼吸，到达或取消后自动隐藏
+    if (this.moveMarker && this.moveMarker.visible) {
+      if (this.familyManager.moveTarget) {
+        this.moveMarkerT += delta;
+        const pulse = Math.sin(this.moveMarkerT * 9);
+        const s = 1 + pulse * 0.14;
+        this.moveMarker.scale.set(s, 1, s);
+        this.moveMarker.material.opacity = 0.65 + pulse * 0.25;
+      } else {
+        this.moveMarker.visible = false;
+      }
     }
 
     this.controls.update();

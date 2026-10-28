@@ -62,7 +62,7 @@ class Application {
             document.getElementById('loading').classList.add('hide');
             bus.emit('banner:show', {
               title: '🏡 温馨四口之家 · 方块小屋',
-              sub: '按 WASD 漫游 · 点击家庭成员卡片切换角色'
+              sub: '按 WASD 或点击地面漫游 · 点击家庭成员卡片切换角色'
             });
             setTimeout(() => {
               bus.emit('toast:show', { kicker: '🏆 达成进度！', title: '【欢迎光临】四口之家的温馨方块小屋！' });
